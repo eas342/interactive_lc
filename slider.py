@@ -59,6 +59,6 @@ layout = row(
     column(amp_slider, freq_slider, phase_slider, offset_slider),
 )
 
-output_file("slider.html", title="slider.py example")
+output_file("slider.html", title="slider.py example", mode='inline')
 
 show(layout)
