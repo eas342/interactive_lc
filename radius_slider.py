@@ -3,72 +3,104 @@ import numpy as np
 from bokeh.layouts import row, column
 from bokeh.models import CustomJS, Slider
 from bokeh.plotting import figure, output_file, show, ColumnDataSource
+import pdb
+
+def light_c(t,aOr=6.,b=0.2,r=0.1):
+    x = aOr * np.sin(t * np.pi * 2.)
+    bp = b *  np.cos(t * np.pi * 2.)
+    z = np.sqrt(t**2 + bp**2)
+    return area_intersect(z,r)
+    
+def area_intersect(z,r):
+    f = np.zeros_like(z)
+    outside_pt = (z >= (1. + r))
+    f[outside_pt] = 1.0
+    
+    inside_pt = (z <= (1. - r))
+    f[inside_pt] = 1.0 - r**2
+    
+    intersect_pt = (z > (1.0 -r)) & (z < (1. + r)) 
+    if np.sum(intersect_pt) > 0:
+        x= (1. - r**2 + z[intersect_pt]**2)/(2. * z[intersect_pt])
+        theta1 = np.arccos(x)
+        theta2 = np.arccos((z[intersect_pt]-x)/r)
+        Aint = theta1 + theta2 * r**2 - np.sqrt(1.0 - x**2) * z[intersect_pt]
+        f[intersect_pt] = 1.0 - Aint / np.pi
+    return f * 100.
 
 x = np.linspace(-5.,5,512) ## time (hours)
-y = np.zeros_like(x) ## flux
-r = np.array([0.0]) ## planet radius
+y = light_c(x)#np.zeros_like(x) ## flux
+r = [2.0] ## planet radius
+marker_size = [2.0] ## size of time marker
+time_now = [0.0] ## time of interest
+flux_now = [0.0] ## flux of interest
+marker_size = [10.0] ## marker size
 
-xCircle = np.array([0.0])
-yCircle = np.array([0.0])
+xCircle = [0.0]
+yCircle = [0.0]
 
 source = ColumnDataSource(data=dict(x=x, y=y))
-source_r = ColumnDataSource(data=dict(r=r,x=xCircle,y=yCircle))
+planet_dict = dict(r=r,x=xCircle,y=yCircle,time_now=time_now,flux_now=flux_now,marker_size=marker_size)
+source_planet = ColumnDataSource(data=planet_dict)
 
-plot1 = figure(y_range=(-10, 10), plot_width=400, plot_height=400)
+plot1 = figure(y_range=(98.5, 100.2), plot_width=400, plot_height=400)
 
 plot1.line('x', 'y', source=source, line_width=3, line_alpha=0.6)
+plot1.circle('time_now','flux_now',size='marker_size',source=source_planet,color='green')
 
-plot2 = figure(x_range=(-10, 10),y_range=(-10, 10), plot_width=400, plot_height=400)
-plot2.circle([-5],[0],radius=10,color='yellow')
-plot2.circle('x','y',radius='r',source=source_r,color='black')
+
+plot2 = figure(x_range=(-20, 20),y_range=(-20, 20), plot_width=400, plot_height=400)
+plot2.circle([0],[0],radius=10,color='yellow')
+plot2.circle('x','y',radius='r',source=source_planet,color='black')
 #plot2.line('x2', 'y2', source=source_polar, line_width=3, line_alpha=0.6)
 
-r_slider = Slider(start=0.0, end=10, value=0, step=.1, title="Radius (Rjup)")
+t_slider = Slider(start=-5, end=5, value=0, step=0.1, title='Time')
+r_slider = Slider(start=0.0, end=10, value=r[0], step=.1, title="Radius (Rjup)")
 
-callback = CustomJS(args=dict(source=source, source_r=source_r, r=r_slider),
+callback = CustomJS(args=dict(source=source, source_planet=source_planet, r=r_slider,t=t_slider),
                     code="""
     const data = source.data;
     const rad = r.value;
     const x = data['x']
     const y = data['y']
-    const data_r = source_r.data;
-    const r_show = data_r['r'];
+    
+    const data_p = source_planet.data;
+    const r_show = data_p['r'];
+    const x_p = data_p['x']
+    
+    const t_now = t.value;
+    const t_show = data_p['time_now']
+    const f_show = data_p['flux_now']
+    
+    r_show[0] = rad * 1.0;
+    x_p[0] = t_now;
+    t_show[0] = t_now;
+    f_show[0] = rad * Math.sin(t_now / 0.5) + 99.5
     
     for (var i = 0; i < x.length; i++) {
-        y[i] = rad * Math.sin(x[i] / 0.5) + 3;
+        y[i] = rad * Math.sin(x[i] / 0.5) + 99.5;
     }
-    r_show[0] = rad * 1.0;
+    
     
     source.change.emit();
-    source_r.change.emit();
+    source_planet.change.emit();
 """)
 #    
 
 
-#    const r_show = data_r['r'];
-#        y[i] = rad*Math.sin(x[i] * 0.5) + 3;
-
-#     const data = source.data;
-#     const A = 1.0;
-#     const k = 1.0;
-#     const phi = 0.0;
-#     const B = 1.0;
-#     const x = data['x']
-#     const y = data['y']
-#
-#     for (var i = 0; i < x.length; i++) {
-#         y[i] = B + A*Math.sin(k*x[i]+phi);
-#     }
-#     source.change.emit();
-# """)
 
 
 
 r_slider.js_on_change('value', callback)
+t_slider.js_on_change('value', callback)
+
+## Remove the toolbars
+plot1.toolbar_location = None
+plot2.toolbar_location = None
 
 layout = row(
     plot1,plot2,
-    column(r_slider),
+    column(t_slider,r_slider),
 )
 
 output_file("slider_radius.html", title="Radius Slider", mode='inline')
