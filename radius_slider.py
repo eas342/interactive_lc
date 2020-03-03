@@ -37,7 +37,7 @@ flux_now = [0.0] ## flux of interest
 marker_size = [10.0] ## marker size
 
 xCircle = [0.0]
-yCircle = [0.0]
+yCircle = [2.0]
 
 source = ColumnDataSource(data=dict(x=x, y=y))
 planet_dict = dict(r=r,x=xCircle,y=yCircle,time_now=time_now,flux_now=flux_now,marker_size=marker_size)
@@ -54,7 +54,7 @@ plot2.circle([0],[0],radius=10,color='yellow')
 plot2.circle('x','y',radius='r',source=source_planet,color='black')
 #plot2.line('x2', 'y2', source=source_polar, line_width=3, line_alpha=0.6)
 
-t_slider = Slider(start=-5, end=5, value=0, step=0.1, title='Time')
+t_slider = Slider(start=-1.5, end=1.5, value=0, step=0.1, title='Time')
 r_slider = Slider(start=0.0, end=10, value=r[0], step=.1, title="Radius (Rjup)")
 
 with open ("lc_functions.js", "r") as js_file:
