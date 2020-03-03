@@ -5,10 +5,10 @@ from bokeh.models import CustomJS, Slider
 from bokeh.plotting import figure, output_file, show, ColumnDataSource
 import pdb
 
-def light_c(t,aOr=6.,b=0.2,r=0.1):
-    x = aOr * np.sin(t * np.pi * 2.)
-    bp = b *  np.cos(t * np.pi * 2.)
-    z = np.sqrt(t**2 + bp**2)
+def light_c(t,aOr=6.,b=0.2,r=0.1,p=24.0):
+    x = aOr * np.sin(t * np.pi * 2. / p)
+    bp = b *  np.cos(t * np.pi * 2. / p)
+    z = np.sqrt(x**2 + bp**2)
     return area_intersect(z,r)
     
 def area_intersect(z,r):
@@ -28,9 +28,9 @@ def area_intersect(z,r):
         f[intersect_pt] = 1.0 - Aint / np.pi
     return f * 100.
 
-x = np.linspace(-5.,5,512) ## time (hours)
+x = np.linspace(-1.5,1.5,512) ## time (hours)
 y = light_c(x)#np.zeros_like(x) ## flux
-r = [2.0] ## planet radius
+r = [1.0] ## planet radius
 marker_size = [2.0] ## size of time marker
 time_now = [0.0] ## time of interest
 flux_now = [0.0] ## flux of interest
@@ -43,7 +43,7 @@ source = ColumnDataSource(data=dict(x=x, y=y))
 planet_dict = dict(r=r,x=xCircle,y=yCircle,time_now=time_now,flux_now=flux_now,marker_size=marker_size)
 source_planet = ColumnDataSource(data=planet_dict)
 
-plot1 = figure(y_range=(98.5, 100.2), plot_width=400, plot_height=400)
+plot1 = figure(y_range=(97.5, 100.2), plot_width=400, plot_height=400)
 
 plot1.line('x', 'y', source=source, line_width=3, line_alpha=0.6)
 plot1.circle('time_now','flux_now',size='marker_size',source=source_planet,color='green')
@@ -54,8 +54,8 @@ plot2.circle([0],[0],radius=10,color='yellow')
 plot2.circle('x','y',radius='r',source=source_planet,color='black')
 #plot2.line('x2', 'y2', source=source_polar, line_width=3, line_alpha=0.6)
 
-t_slider = Slider(start=-1.5, end=1.5, value=0, step=0.1, title='Time')
-r_slider = Slider(start=0.0, end=10, value=r[0], step=.1, title="Radius (Rjup)")
+t_slider = Slider(start=-1.5, end=1.5, value=0, step=0.01, title='Time')
+r_slider = Slider(start=0.0, end=2.0, value=r[0], step=.01, title="Radius (Rjup)")
 
 with open ("lc_functions.js", "r") as js_file:
     js_code = js_file.read()
