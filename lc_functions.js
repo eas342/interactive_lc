@@ -11,13 +11,17 @@ const t_now = t.value;
 const t_show = data_p['time_now']
 const f_show = data_p['flux_now']
 
+function lcFunction(x_fun, rad_fun) {
+      return 0.1 * rad_fun * Math.sin(x_fun/ 0.5) + 99.5
+}
+
 r_show[0] = rad * 1.0;
 x_p[0] = t_now;
 t_show[0] = t_now;
-f_show[0] = rad * Math.sin(t_now / 0.5) + 99.5
+f_show[0] = lcFunction(t_now, rad);
 
 for (var i = 0; i < x.length; i++) {
-    y[i] = rad * Math.sin(x[i] / 0.5) + 99.5;
+    y[i] = lcFunction(x[i], rad);
 }
 
 source.change.emit();
