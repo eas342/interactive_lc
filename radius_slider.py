@@ -57,38 +57,12 @@ plot2.circle('x','y',radius='r',source=source_planet,color='black')
 t_slider = Slider(start=-5, end=5, value=0, step=0.1, title='Time')
 r_slider = Slider(start=0.0, end=10, value=r[0], step=.1, title="Radius (Rjup)")
 
+with open ("lc_functions.js", "r") as js_file:
+    js_code = js_file.read()
+
 callback = CustomJS(args=dict(source=source, source_planet=source_planet, r=r_slider,t=t_slider),
-                    code="""
-    const data = source.data;
-    const rad = r.value;
-    const x = data['x']
-    const y = data['y']
-    
-    const data_p = source_planet.data;
-    const r_show = data_p['r'];
-    const x_p = data_p['x']
-    
-    const t_now = t.value;
-    const t_show = data_p['time_now']
-    const f_show = data_p['flux_now']
-    
-    r_show[0] = rad * 1.0;
-    x_p[0] = t_now;
-    t_show[0] = t_now;
-    f_show[0] = rad * Math.sin(t_now / 0.5) + 99.5
-    
-    for (var i = 0; i < x.length; i++) {
-        y[i] = rad * Math.sin(x[i] / 0.5) + 99.5;
-    }
-    
-    
-    source.change.emit();
-    source_planet.change.emit();
-""")
+                    code=js_code)
 #    
-
-
-
 
 
 r_slider.js_on_change('value', callback)
