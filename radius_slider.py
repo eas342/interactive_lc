@@ -67,13 +67,13 @@ source = ColumnDataSource(data=dict(x=x, y=y))
 planet_dict = dict(r=r,x=xCircle,y=yCircle,time_now=time_now,flux_now=flux_now,marker_size=marker_size)
 source_planet = ColumnDataSource(data=planet_dict)
 
-plot1 = figure(y_range=(97.5, 100.2), plot_width=400, plot_height=400)
+plot1 = figure(y_range=(97.5, 100.2), plot_width=400, plot_height=200)
 
 plot1.line('x', 'y', source=source, line_width=3, line_alpha=0.6)
 plot1.circle('time_now','flux_now',size='marker_size',source=source_planet,color='green')
 
 plot1.xaxis.axis_label = "Time from Central Transit (hours)"
-plot1.yaxis.axis_label = "Relative Brightness (%)"
+plot1.yaxis.axis_label = "Brightness (%)"
 plot1.xaxis.axis_label_text_font_size = axes_font_size
 plot1.yaxis.axis_label_text_font_size = axes_font_size
 
@@ -101,12 +101,12 @@ plot2.circle('x','y',radius='r',source=source_planet,color='black',line_color='b
 #plot2.line('x2', 'y2', source=source_polar, line_width=3, line_alpha=0.6)
 plot2.xgrid.visible = False
 plot2.ygrid.visible = False
-plot2.xaxis.axis_label = "X Size (Earth Radii)"
-plot2.yaxis.axis_label = "Y Size (Earth Radii)"
+plot2.xaxis.axis_label = "X Distance (Earth Radii)"
+plot2.yaxis.axis_label = "Y Distance (Earth Radii)"
 plot2.xaxis.axis_label_text_font_size = axes_font_size
 plot2.yaxis.axis_label_text_font_size = axes_font_size
 
-t_slider = Slider(start=-1.5, end=1.5, value=0, step=0.01, title='Time')
+t_slider = Slider(start=-1.5, end=1.5, value=0, step=0.01, title='Time from Central Transit (hours)')
 r_slider = Slider(start=0.0, end=2.0, value=r[0], step=.01, title="Radius (Earth Radii)")
 
 with open ("lc_functions.js", "r") as js_file:
@@ -125,7 +125,7 @@ plot1.toolbar_location = None
 plot2.toolbar_location = None
 
 layout = row(
-    plot1,plot2,
+    column(plot1,plot2),
     column(t_slider,r_slider),
 )
 
