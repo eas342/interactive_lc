@@ -61,6 +61,8 @@ marker_size = [10.0] ## marker size
 xCircle = [0.0]
 yCircle = [2.0]
 
+axes_font_size = "16pt"
+
 source = ColumnDataSource(data=dict(x=x, y=y))
 planet_dict = dict(r=r,x=xCircle,y=yCircle,time_now=time_now,flux_now=flux_now,marker_size=marker_size)
 source_planet = ColumnDataSource(data=planet_dict)
@@ -70,14 +72,42 @@ plot1 = figure(y_range=(97.5, 100.2), plot_width=400, plot_height=400)
 plot1.line('x', 'y', source=source, line_width=3, line_alpha=0.6)
 plot1.circle('time_now','flux_now',size='marker_size',source=source_planet,color='green')
 
+plot1.xaxis.axis_label = "Time from Central Transit (hours)"
+plot1.yaxis.axis_label = "Relative Brightness (%)"
+plot1.xaxis.axis_label_text_font_size = axes_font_size
+plot1.yaxis.axis_label_text_font_size = axes_font_size
 
 plot2 = figure(x_range=(-20, 20),y_range=(-20, 20), plot_width=400, plot_height=400)
-plot2.circle([0],[0],radius=10,color='yellow')
-plot2.circle('x','y',radius='r',source=source_planet,color='black')
+
+
+## make a limb darkened star
+r_star = 10.0
+u_linear = 0.2 ## linear limb darkening parameter
+img_res = 256
+x_linear = np.linspace(-r_star * 2, r_star * 2, img_res)
+y_linear = np.linspace(-r_star * 2, r_star * 2, img_res)
+xx_grid, yy_grid = np.meshgrid(x_linear, y_linear)
+rr_grid = np.sqrt(xx_grid**2 + yy_grid**2) ## radius
+in_points = rr_grid < r_star ## only the points inside will be calculated
+mu = np.sqrt(r_star**2 - rr_grid[in_points]**2) ##mu
+f_star = np.zeros_like(rr_grid)
+f_star[in_points] = (1.0 - u_linear * (1.0 - mu)) / (1.0 - u_linear / 6.0)
+plot2.image(image=[f_star], x=-2 * r_star, y=-2 * r_star, dw=4 * r_star, dh=4 * r_star, palette="Inferno256", level="image")
+
+
+#plot2.circle([0],[0],radius=10,color='yellow')
+
+plot2.circle('x','y',radius='r',source=source_planet,color='black',line_color='blue')
 #plot2.line('x2', 'y2', source=source_polar, line_width=3, line_alpha=0.6)
+plot2.xgrid.visible = False
+plot2.ygrid.visible = False
+plot2.xaxis.axis_label = "X Size (Earth Radii)"
+plot2.yaxis.axis_label = "Y Size (Earth Radii)"
+plot2.xaxis.axis_label_text_font_size = axes_font_size
+plot2.yaxis.axis_label_text_font_size = axes_font_size
 
 t_slider = Slider(start=-1.5, end=1.5, value=0, step=0.01, title='Time')
-r_slider = Slider(start=0.0, end=2.0, value=r[0], step=.01, title="Radius (Rjup)")
+r_slider = Slider(start=0.0, end=2.0, value=r[0], step=.01, title="Radius (Earth Radii)")
 
 with open ("lc_functions.js", "r") as js_file:
     js_code = js_file.read()
