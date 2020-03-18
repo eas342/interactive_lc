@@ -5,19 +5,41 @@ from bokeh.models import CustomJS, Slider
 from bokeh.plotting import figure, output_file, show, ColumnDataSource
 import pdb
 
-def light_c(t,aOr=6.,b=0.2,r=0.1,p=24.0):
-    x = aOr * np.sin(t * np.pi * 2. / p)
-    bp = b *  np.cos(t * np.pi * 2. / p)
-    z = np.sqrt(x**2 + bp**2)
-    return area_intersect(z,r)
+def limb_dark(z,r,u=0.2):
+    """ Simple limb darkening law
+        Ignores the variations across the planet
+    """
+    C = 1./ (1. - u/6.)
     
-def area_intersect(z,r):
     f = np.zeros_like(z)
     outside_pt = (z >= (1. + r))
     f[outside_pt] = 1.0
     
+    inside_pt = (z < 1.0)
+    mu = np.sqrt(1. - z[inside_pt]**2)
+    f[inside_pt] = C * (1.0 - u * (1. - mu))
+    
+    intersect_pt = (z >= 1.0) & (z < (1. + r))
+    f[intersect_pt] = C * (1. - u)
+    
+    return f
+    
+
+def light_c(t,aOr=6.,b=0.2,r=0.1,p=24.0,u=0.2):
+    x = aOr * np.sin(t * np.pi * 2. / p)
+    bp = b *  np.cos(t * np.pi * 2. / p)
+    z = np.sqrt(x**2 + bp**2)
+    Aint = area_intersect(z,r)
+    f = 1. - Aint * limb_dark(z,r,u=u)
+    return f * 100.
+    
+def area_intersect(z,r):
+    f = np.zeros_like(z)
+    outside_pt = (z >= (1. + r))
+    f[outside_pt] = 0.0
+    
     inside_pt = (z <= (1. - r))
-    f[inside_pt] = 1.0 - r**2
+    f[inside_pt] = r**2
     
     intersect_pt = (z > (1.0 -r)) & (z < (1. + r)) 
     if np.sum(intersect_pt) > 0:
@@ -25,8 +47,8 @@ def area_intersect(z,r):
         theta1 = np.arccos(x)
         theta2 = np.arccos((z[intersect_pt]-x)/r)
         Aint = theta1 + theta2 * r**2 - np.sqrt(1.0 - x**2) * z[intersect_pt]
-        f[intersect_pt] = 1.0 - Aint / np.pi
-    return f * 100.
+        f[intersect_pt] = Aint / np.pi
+    return f
 
 x = np.linspace(-1.5,1.5,512) ## time (hours)
 y = light_c(x)#np.zeros_like(x) ## flux
