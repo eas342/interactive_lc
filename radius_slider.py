@@ -98,7 +98,7 @@ plot2.image(image=[f_star], x=-2 * r_star, y=-2 * r_star, dw=4 * r_star, dh=4 * 
 
 #plot2.circle([0],[0],radius=10,color='yellow')
 
-plot2.circle('x','y',radius='r',source=source_planet,color='black',line_color='blue')
+plot2.circle('x','y',radius='r',source=source_planet,color='black',line_color='cyan')
 #plot2.line('x2', 'y2', source=source_polar, line_width=3, line_alpha=0.6)
 plot2.xgrid.visible = False
 plot2.ygrid.visible = False
