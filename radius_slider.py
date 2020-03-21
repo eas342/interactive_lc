@@ -1,9 +1,13 @@
 import numpy as np
-
+import sys
 from bokeh.layouts import row, column
 from bokeh.models import CustomJS, Slider
 from bokeh.plotting import figure, output_file, show, ColumnDataSource
 import pdb
+import warnings
+
+if sys.version_info < (3,5):
+    warnings.warn("Use a Python 3.5 or later for better results")
 
 def limb_dark(z,r,u=0.2):
     """ Simple limb darkening law
@@ -109,7 +113,7 @@ plot2.yaxis.axis_label_text_font_size = axes_font_size
 plot2.title.text = 'Star View'
 
 t_slider = Slider(start=-1.5, end=1.5, value=0, step=0.01, title='Time from Central Transit (hours)')
-r_slider = Slider(start=0.0, end=2.0, value=r[0], step=.01, title="Radius (Earth Radii)")
+r_slider = Slider(start=0.0, end=1.5, value=r[0], step=.01, title="Radius (Earth Radii)")
 
 with open ("lc_functions.js", "r") as js_file:
     js_code = js_file.read()
