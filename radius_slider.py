@@ -5,6 +5,7 @@ from bokeh.models import CustomJS, Slider
 from bokeh.plotting import figure, output_file, show, ColumnDataSource
 import pdb
 import warnings
+from json import JSONEncoder
 
 if sys.version_info < (3,5):
     warnings.warn("Use a Python 3.5 or later for better results")
@@ -54,87 +55,106 @@ def area_intersect(z,r):
         f[intersect_pt] = Aint / np.pi
     return f
 
-x = np.linspace(-1.5,1.5,512) ## time (hours)
-y = light_c(x)#np.zeros_like(x) ## flux
-r = [1.0] ## planet radius
-marker_size = [2.0] ## size of time marker
-time_now = [0.0] ## time of interest
-flux_now = light_c(np.array(time_now)) ## flux of interest
-marker_size = [10.0] ## marker size
-
-xCircle = [0.0]
-yCircle = [2.0]
-
-axes_font_size = "14pt"
-
-source = ColumnDataSource(data=dict(x=x, y=y))
-planet_dict = dict(r=r,x=xCircle,y=yCircle,time_now=time_now,flux_now=flux_now,marker_size=marker_size)
-source_planet = ColumnDataSource(data=planet_dict)
-
-plot1 = figure(y_range=(97.5, 100.2), plot_width=400, plot_height=200)
-
-plot1.line('x', 'y', source=source, line_width=3, line_alpha=0.6)
-plot1.circle('time_now','flux_now',size='marker_size',source=source_planet,color='green')
-
-plot1.title.text = 'Lightcurve'
-plot1.xaxis.axis_label = "Time from Central Transit (hours)"
-plot1.yaxis.axis_label = "Brightness (%)"
-plot1.xaxis.axis_label_text_font_size = axes_font_size
-plot1.yaxis.axis_label_text_font_size = axes_font_size
-
-plot2 = figure(x_range=(-20, 20),y_range=(-20, 20), plot_width=400, plot_height=400)
+class fixed_param(dict):
+    def __init__(self,value):
+        self.value = value
 
 
-## make a limb darkened star
-r_star = 10.0
-u_linear = 0.2 ## linear limb darkening parameter
-img_res = 256
-x_linear = np.linspace(-r_star * 2, r_star * 2, img_res)
-y_linear = np.linspace(-r_star * 2, r_star * 2, img_res)
-xx_grid, yy_grid = np.meshgrid(x_linear, y_linear)
-rr_grid = np.sqrt(xx_grid**2 + yy_grid**2) ## radius
-in_points = rr_grid < r_star ## only the points inside will be calculated
-mu = np.sqrt(r_star**2 - rr_grid[in_points]**2) ##mu
-f_star = np.zeros_like(rr_grid)
-f_star[in_points] = (1.0 - u_linear * (1.0 - mu)) / (1.0 - u_linear / 6.0)
-plot2.image(image=[f_star], x=-2 * r_star, y=-2 * r_star, dw=4 * r_star, dh=4 * r_star, palette="Inferno256", level="image")
+def lightcurve_slider(free_radius=True):
+    
+    x = np.linspace(-1.5,1.5,512) ## time (hours)
+    y = light_c(x)#np.zeros_like(x) ## flux
+    r = [1.0] ## planet radius
+    marker_size = [2.0] ## size of time marker
+    time_now = [0.0] ## time of interest
+    flux_now = light_c(np.array(time_now)) ## flux of interest
+    marker_size = [10.0] ## marker size
+
+    xCircle = [0.0]
+    yCircle = [2.0]
+
+    axes_font_size = "14pt"
+
+    source = ColumnDataSource(data=dict(x=x, y=y))
+    planet_dict = dict(r=r,x=xCircle,y=yCircle,time_now=time_now,flux_now=flux_now,marker_size=marker_size)
+    source_planet = ColumnDataSource(data=planet_dict)
+
+    plot1 = figure(y_range=(97.5, 100.2), plot_width=400, plot_height=200)
+
+    plot1.line('x', 'y', source=source, line_width=3, line_alpha=0.6)
+    plot1.circle('time_now','flux_now',size='marker_size',source=source_planet,color='green')
+
+    plot1.title.text = 'Lightcurve'
+    plot1.xaxis.axis_label = "Time from Central Transit (hours)"
+    plot1.yaxis.axis_label = "Brightness (%)"
+    plot1.xaxis.axis_label_text_font_size = axes_font_size
+    plot1.yaxis.axis_label_text_font_size = axes_font_size
+
+    plot2 = figure(x_range=(-20, 20),y_range=(-20, 20), plot_width=400, plot_height=400)
+
+    
+    ## make a limb darkened star
+    r_star = 10.0
+    u_linear = 0.2 ## linear limb darkening parameter
+    img_res = 256
+    x_linear = np.linspace(-r_star * 2, r_star * 2, img_res)
+    y_linear = np.linspace(-r_star * 2, r_star * 2, img_res)
+    xx_grid, yy_grid = np.meshgrid(x_linear, y_linear)
+    rr_grid = np.sqrt(xx_grid**2 + yy_grid**2) ## radius
+    in_points = rr_grid < r_star ## only the points inside will be calculated
+    mu = np.sqrt(r_star**2 - rr_grid[in_points]**2) ##mu
+    f_star = np.zeros_like(rr_grid)
+    f_star[in_points] = (1.0 - u_linear * (1.0 - mu)) / (1.0 - u_linear / 6.0)
+    plot2.image(image=[f_star], x=-2 * r_star, y=-2 * r_star, dw=4 * r_star, dh=4 * r_star, palette="Inferno256", level="image")
 
 
-#plot2.circle([0],[0],radius=10,color='yellow')
+    #plot2.circle([0],[0],radius=10,color='yellow')
 
-plot2.circle('x','y',radius='r',source=source_planet,color='black',line_color='cyan')
-#plot2.line('x2', 'y2', source=source_polar, line_width=3, line_alpha=0.6)
-plot2.xgrid.visible = False
-plot2.ygrid.visible = False
-plot2.xaxis.axis_label = "X Distance (Earth Radii)"
-plot2.yaxis.axis_label = "Y Distance (Earth Radii)"
-plot2.xaxis.axis_label_text_font_size = axes_font_size
-plot2.yaxis.axis_label_text_font_size = axes_font_size
-plot2.title.text = 'Star View'
+    plot2.circle('x','y',radius='r',source=source_planet,color='black',line_color='cyan')
+    #plot2.line('x2', 'y2', source=source_polar, line_width=3, line_alpha=0.6)
+    plot2.xgrid.visible = False
+    plot2.ygrid.visible = False
+    plot2.xaxis.axis_label = "X Distance (Earth Radii)"
+    plot2.yaxis.axis_label = "Y Distance (Earth Radii)"
+    plot2.xaxis.axis_label_text_font_size = axes_font_size
+    plot2.yaxis.axis_label_text_font_size = axes_font_size
+    plot2.title.text = 'Star View'
 
-t_slider = Slider(start=-1.5, end=1.5, value=0, step=0.01, title='Time from Central Transit (hours)')
-r_slider = Slider(start=0.0, end=1.5, value=r[0], step=.01, title="Radius (Earth Radii)")
+    t_slider = Slider(start=-1.5, end=1.5, value=0, step=0.01, title='Time from Central Transit (hours)')
+    
+    if free_radius == True:
+        r_slider = Slider(start=0.0, end=1.5, value=r[0], step=.01, title="Radius (Earth Radii)")
+        sliderList = [t_slider,r_slider]
+    else:
+        r_slider = {'value':1}#fixed_param(r[0])
+        sliderList = [t_slider]
 
-with open ("lc_functions.js", "r") as js_file:
-    js_code = js_file.read()
+    with open ("lc_functions.js", "r") as js_file:
+        js_code = js_file.read()
 
-callback = CustomJS(args=dict(source=source, source_planet=source_planet, r=r_slider,t=t_slider),
-                    code=js_code)
-#    
+    callback = CustomJS(args=dict(source=source, source_planet=source_planet, r=r_slider,t=t_slider),
+                        code=js_code)
+    #    
 
+    if free_radius == True:
+        r_slider.js_on_change('value', callback)
+    else:
+        pass
+    
+    t_slider.js_on_change('value', callback)
 
-r_slider.js_on_change('value', callback)
-t_slider.js_on_change('value', callback)
+    ## Remove the toolbars
+    plot1.toolbar_location = None
+    plot2.toolbar_location = None
 
-## Remove the toolbars
-plot1.toolbar_location = None
-plot2.toolbar_location = None
+    layout = row(
+        column(plot1,plot2),
+        column(sliderList),
+    )
 
-layout = row(
-    column(plot1,plot2),
-    column(t_slider,r_slider),
-)
+    output_file("slider_radius.html", title="Radius Slider", mode='inline')
 
-output_file("slider_radius.html", title="Radius Slider", mode='inline')
+    show(layout)
 
-show(layout)
+if __name__ == "__main__":
+    lightcurve_slider()
