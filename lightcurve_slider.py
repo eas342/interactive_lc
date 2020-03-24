@@ -206,6 +206,8 @@ def scattering_slider():
     plot2.xaxis.axis_label_text_font_size = axes_font_size
     plot2.yaxis.axis_label_text_font_size = axes_font_size
     plot2.scatter('w','rad',source=source,line_width=None,fill_color='colors',size=12)
+    plot2.title.text = 'Spectrum Plot'
+    
     
     t_slider = Slider(start=0, end=0.3, value=0.3, step=0.01, title='Atmospheric Thickness')
     
