@@ -60,7 +60,7 @@ class fixed_param(dict):
         self.value = value
 
 
-def lightcurve_slider(free_radius=True):
+def lightcurve_slider(free_radius=True,free_impact=False):
     
     x = np.linspace(-1.5,1.5,512) ## time (hours)
     y = light_c(x)#np.zeros_like(x) ## flux
@@ -121,28 +121,27 @@ def lightcurve_slider(free_radius=True):
     plot2.title.text = 'Star View'
 
     t_slider = Slider(start=-1.5, end=1.5, value=0, step=0.01, title='Time from Central Transit (hours)')
+    r_slider = Slider(start=0.0, end=1.5, value=r[0], step=.01, title="Radius (Earth Radii)")
+    b_slider = Slider(start=0.0, end=1.1, value=0.2, step=0.01, title="Impact Parameter")
     
+    sliderList = [t_slider]
     if free_radius == True:
-        r_slider = Slider(start=0.0, end=1.5, value=r[0], step=.01, title="Radius (Earth Radii)")
-        sliderList = [t_slider,r_slider]
-    else:
-        r_slider = {'value':1}#fixed_param(r[0])
-        sliderList = [t_slider]
-
+        sliderList.append(r_slider)
+    if free_impact == True:
+        sliderList.append(b_slider)
+    
     with open ("lc_functions.js", "r") as js_file:
         js_code = js_file.read()
 
-    callback = CustomJS(args=dict(source=source, source_planet=source_planet, r=r_slider,t=t_slider),
+    js_args = dict(source=source, source_planet=source_planet, r=r_slider,t=t_slider,b_imp=b_slider)
+    callback = CustomJS(args=js_args,
                         code=js_code)
     #    
 
-    if free_radius == True:
-        r_slider.js_on_change('value', callback)
-    else:
-        pass
+    #if free_radius == True:
+    for oneSlider in sliderList:
+        oneSlider.js_on_change('value', callback)
     
-    t_slider.js_on_change('value', callback)
-
     ## Remove the toolbars
     plot1.toolbar_location = None
     plot2.toolbar_location = None

@@ -1,5 +1,5 @@
 const data = source.data;
-const rad = r.value;
+const rad = r.value; // planet ardius
 const x = data['x']
 const y = data['y']
 
@@ -12,7 +12,7 @@ const t_now = t.value;
 const t_show = data_p['time_now']
 const f_show = data_p['flux_now']
 const a_o_r = 6.0 // semi-major axis
-const b = 0.2 // impact parameter
+const b = b_imp.value // impact parameter
 const period = 24. // orbital period
 const u_lin = 0.2 // linear limb darkening
 
