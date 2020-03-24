@@ -3,6 +3,7 @@ import sys
 from bokeh.layouts import row, column
 from bokeh.models import CustomJS, Slider
 from bokeh.plotting import figure, output_file, show, ColumnDataSource
+#from bokeh.models import LinearColorMapper
 import pdb
 import warnings
 from json import JSONEncoder
@@ -61,6 +62,10 @@ class fixed_param(dict):
 
 
 def lightcurve_slider(free_radius=True,free_impact=False):
+    """
+    Lightcurve slider to show lightcurve and projected view
+    """
+    
     
     x = np.linspace(-1.5,1.5,512) ## time (hours)
     y = light_c(x)#np.zeros_like(x) ## flux
@@ -150,8 +155,82 @@ def lightcurve_slider(free_radius=True,free_impact=False):
         column(plot1,plot2),
         column(sliderList),
     )
+    
+    outName = "slider_free_rad_{}_free_b_{}.html".format(free_radius,free_impact)
+    output_file(outName, title="Radius Slider", mode='inline')
 
-    output_file("slider_radius.html", title="Radius Slider", mode='inline')
+    show(layout)
+
+w0 = 0.67
+
+def calc_radii(w,wRange,thickness=0.3):
+    """
+    Simple function that converts an "atmospheric thickness" to a radius spectrum
+    """
+    rad = 0.8 - 1.0 * thickness * (w - w0) / wRange
+    return rad
+
+def scattering_slider():
+    """
+    Slider shows the planet, spectrum and lightcurves
+    """
+    w = np.array([  0.64   ,  0.61    , 0.57  ,   0.53   , 0.47     , 0.41 ])
+    posx = np.zeros_like(w)
+    posy = np.zeros_like(w)
+    wRange = w[0] - w[-1]
+    colors_array = np.array([  'red' ,'orange','yellow' ,'green',  'blue',  'violet'])
+    thickness = 0.3 ## "atmospheric thickness"
+    
+    rad_arr = calc_radii(w,wRange,thickness)
+    
+    axes_font_size = "14pt"
+    
+    source = ColumnDataSource(data=dict(w=w, rad=rad_arr,posx=posx,posy=posy,colors=colors_array))
+    
+    plot1 = figure(x_range=(-1.3,1.3),y_range=(-1.3,1.3), plot_width=400, plot_height=400)
+    
+    plot1.scatter('posx','posy',radius='rad',source=source, line_width=3,
+                  fill_color=None,line_color='colors')
+    plot1.circle(0.0,0.0,radius=0.8,color='black')
+    
+    plot1.title.text = 'Planet View'
+    plot1.xaxis.axis_label = "X Size (Earth Radii)"
+    plot1.yaxis.axis_label = "Y Size (Earth Radii)"
+    plot1.xaxis.axis_label_text_font_size = axes_font_size
+    plot1.yaxis.axis_label_text_font_size = axes_font_size
+
+    plot2 = figure(y_range=[0.77,1.15],plot_width=400, plot_height=400)
+    plot2.line('w','rad',source=source)
+    plot2.xaxis.axis_label = "Wavelength (microns)"
+    plot2.yaxis.axis_label = "Radius (Earth Radii)"
+    plot2.xaxis.axis_label_text_font_size = axes_font_size
+    plot2.yaxis.axis_label_text_font_size = axes_font_size
+    plot2.scatter('w','rad',source=source,line_width=None,fill_color='colors',size=12)
+    
+    t_slider = Slider(start=0, end=0.3, value=0.3, step=0.01, title='Atmospheric Thickness')
+    
+    sliderList = [t_slider]
+    
+    with open ("scattering_functions.js", "r") as js_file:
+        js_code = js_file.read()
+    
+    js_args = dict(source=source, wRange=wRange,t=t_slider)
+    callback = CustomJS(args=js_args,
+                        code=js_code)
+    
+    for oneSlider in sliderList:
+        oneSlider.js_on_change('value', callback)
+    
+    ## Remove the toolbars
+    plot1.toolbar_location = None
+    plot2.toolbar_location = None
+
+    layout = row(
+        column(plot1,plot2),
+        column(sliderList),
+    )
+
+    output_file("slider_scattering.html", title="Radius Slider", mode='inline')
 
     show(layout)
 

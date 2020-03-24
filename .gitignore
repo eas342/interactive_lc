@@ -1,5 +1,4 @@
 *.DS_Store
 *.pyc
-slider.html
-slider_radius.html
+*.html
 my_light_curve\ alias\ for\ example\ lc\ calc
