@@ -156,7 +156,7 @@ def lightcurve_slider(free_radius=True,free_impact=False):
         column(sliderList),
     )
     
-    outName = "slider_free_rad_{}_free_b_{}.html".format(free_radius,free_impact)
+    outName = "plots/slider_free_rad_{}_free_b_{}.html".format(free_radius,free_impact)
     output_file(outName, title="Radius Slider", mode='inline')
 
     show(layout)
@@ -255,7 +255,7 @@ def scattering_slider():
         column(t_slider,plot3),
     )
 
-    output_file("slider_scattering.html", title="Radius Slider", mode='inline')
+    output_file("plots/slider_scattering.html", title="Radius Slider", mode='inline')
 
     show(layout)
 
