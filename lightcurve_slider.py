@@ -175,6 +175,7 @@ def scattering_slider():
     Slider shows the planet, spectrum and lightcurves
     """
     w = np.array([  0.64   ,  0.61    , 0.57  ,   0.53   , 0.47     , 0.41 ])
+    nWave = len(w)
     posx = np.zeros_like(w)
     posy = np.zeros_like(w)
     wRange = w[0] - w[-1]
@@ -209,27 +210,49 @@ def scattering_slider():
     plot2.title.text = 'Spectrum Plot'
     
     
+    time = np.linspace(-1.2,1.2,256)
+    # fluxData = np.zeros([len(time),len(rad_arr)])
+    # for waveInd in np.arange(nWave):
+    #     fluxData[:,waveInd] = light_c(time,r=rad_arr[waveInd])
+    #lc_dict = {'t': time,'f': fluxData}
+    # plot3.line('t','f',source=source_lc)
+    
+    lc_dict = {'t': time}
+    for waveInd in np.arange(nWave):
+        lc_dict['f {}'.format(waveInd)] = light_c(time,r=rad_arr[waveInd]/10.)
+    
+    source_lc = ColumnDataSource(data=lc_dict)
+    
+    plot3 = figure(y_range=[98.5,100.1],plot_width=400, plot_height=400)
+    
+    for waveInd in np.arange(nWave):
+        plot3.line('t','f {}'.format(waveInd),source=source_lc,
+                   color=colors_array[waveInd],line_width=3)
+    plot3.xaxis.axis_label = "Time (hours)"
+    plot3.yaxis.axis_label = "Relative Brightness (%)"
+    plot3.xaxis.axis_label_text_font_size = axes_font_size
+    plot3.yaxis.axis_label_text_font_size = axes_font_size
+    plot3.title.text = 'Lightcurve Plot'
+    
     t_slider = Slider(start=0, end=0.3, value=0.3, step=0.01, title='Atmospheric Thickness')
-    
-    sliderList = [t_slider]
-    
+        
     with open ("scattering_functions.js", "r") as js_file:
         js_code = js_file.read()
     
-    js_args = dict(source=source, wRange=wRange,t=t_slider)
+    js_args = dict(source=source, source_lc=source_lc,wRange=wRange,t=t_slider)
     callback = CustomJS(args=js_args,
                         code=js_code)
     
-    for oneSlider in sliderList:
-        oneSlider.js_on_change('value', callback)
+    t_slider.js_on_change('value', callback)
     
     ## Remove the toolbars
     plot1.toolbar_location = None
     plot2.toolbar_location = None
-
+    plot3.toolbar_location = None
+    
     layout = row(
         column(plot1,plot2),
-        column(sliderList),
+        column(t_slider,plot3),
     )
 
     output_file("slider_scattering.html", title="Radius Slider", mode='inline')
