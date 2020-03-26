@@ -7,9 +7,16 @@ from bokeh.plotting import figure, output_file, show, ColumnDataSource
 import pdb
 import warnings
 from json import JSONEncoder
+import os
+try:
+    from astropy.io import fits, ascii
+except ImportError:
+    warnings.warn("Could not find astropy. Data plotter may not work")
 
 if sys.version_info < (3,5):
     warnings.warn("Use a Python 3.5 or later for better results")
+
+axes_font_size = "14pt"
 
 def limb_dark(z,r,u=0.2):
     """ Simple limb darkening law
@@ -78,7 +85,6 @@ def lightcurve_slider(free_radius=True,free_impact=False):
     xCircle = [0.0]
     yCircle = [2.0]
 
-    axes_font_size = "14pt"
 
     source = ColumnDataSource(data=dict(x=x, y=y))
     planet_dict = dict(r=r,x=xCircle,y=yCircle,time_now=time_now,flux_now=flux_now,marker_size=marker_size)
@@ -184,8 +190,6 @@ def scattering_slider():
     
     rad_arr = calc_radii(w,wRange,thickness)
     
-    axes_font_size = "14pt"
-    
     source = ColumnDataSource(data=dict(w=w, rad=rad_arr,posx=posx,posy=posy,colors=colors_array))
     
     plot1 = figure(x_range=(-1.3,1.3),y_range=(-1.3,1.3), plot_width=400, plot_height=400)
@@ -256,6 +260,103 @@ def scattering_slider():
     )
 
     output_file("plots/slider_scattering.html", title="Radius Slider", mode='inline')
+
+    show(layout)
+
+
+def calc_radii(w,wRange,thickness=0.3):
+    """
+    Simple function that converts an "atmospheric thickness" to a radius spectrum
+    """
+    rad = 0.8 - 1.0 * thickness * (w - w0) / wRange
+    return rad
+
+def transmission_spec_slider(mysteryNum=1):
+    """
+    Sliders for the transmission spectrum and their lightcurves
+    """
+    
+    datName = 'data/mystery_lc_{}.fits'.format(mysteryNum)
+    if os.path.exists(datName):
+        HDUList = fits.open(datName)
+    else:
+        raise Exception("Mystery {} not found".format(mysteryNum))
+    
+    w = HDUList['WAVE'].data
+    lcData = HDUList['FLUX'].data
+    rad_init = 1.5
+    rad_arr = np.ones_like(w) * rad_init
+    orig_time = HDUList['TIME'].data
+    
+    time = np.linspace(-1.2,1.2,256) ## time
+    
+    nWave = len(w)
+    
+    #colors_array = np.array(['darkred','red' ,'darkorange','orange','brown','yellow' ,'green',  'blue',  'violet'])
+    
+    
+    source = ColumnDataSource(data=dict(w=w, rad=rad_arr))
+    
+    plot1 = figure(y_range=(0.7,1.1), plot_width=400, plot_height=700)
+    
+    plot1.scatter('posx','posy',radius='rad',source=source, line_width=3,
+                  fill_color=None,line_color='colors')
+    plot1.circle(0.0,0.0,radius=0.8,color='black')
+    
+    lc_dict = {'t': time}
+    for waveInd in np.arange(nWave):
+        lc_dict['f {}'.format(waveInd)] = light_c(time,r=rad_arr[waveInd]/10.) - 1.5 * waveInd
+    
+    source_lc = ColumnDataSource(data=lc_dict)
+    
+    plot1 = figure(y_range=[82,100.1],plot_width=400, plot_height=600)
+    
+    for waveInd in np.arange(nWave):
+        plot1.line('t','f {}'.format(waveInd),source=source_lc,
+                   line_width=3)
+#                   color=colors_array[waveInd],line_width=3)
+    plot1.xaxis.axis_label = "Time (hours)"
+    plot1.yaxis.axis_label = "Relative Brightness (%) - Offset"
+    plot1.xaxis.axis_label_text_font_size = axes_font_size
+    plot1.yaxis.axis_label_text_font_size = axes_font_size
+    plot1.title.text = 'Lightcurve Plot'
+    
+    
+    plot2 = figure(y_range=[1.0,2.0],plot_width=400, plot_height=300)
+    plot2.line('w','rad',source=source)
+    plot2.xaxis.axis_label = "Wavelength (microns)"
+    plot2.yaxis.axis_label = "Radius (Earth Radii)"
+    plot2.xaxis.axis_label_text_font_size = axes_font_size
+    plot2.yaxis.axis_label_text_font_size = axes_font_size
+    plot2.scatter('w','rad',source=source,line_width=None)#,fill_color='colors',size=12)
+    plot2.title.text = 'Spectrum Plot'
+    
+    slider_list = []
+    for waveInd in np.arange(nWave):
+        thisTitle = "Radius (Earth Radii) at {:.2f} microns".format(w[waveInd])
+        r_slider = Slider(start=1.0, end=2.0, value=rad_init, step=0.01, title=thisTitle)
+        slider_list.append(r_slider)
+    
+    with open ("transmission_spec_functions.js", "r") as js_file:
+        js_code = js_file.read()
+
+    js_args = dict(source=source, source_lc=source_lc,r_slider_list = slider_list)
+    callback = CustomJS(args=js_args,
+                        code=js_code)
+
+    for one_slider in slider_list:
+        one_slider.js_on_change('value', callback)
+    
+    ## Remove the toolbars
+    plot1.toolbar_location = None
+    plot2.toolbar_location = None
+    
+    layout = row(
+        column(plot1,plot2),
+        column(slider_list),
+    )
+
+    output_file("plots/slider_transmission.html", title="Transmission Spectrum Slider", mode='inline')
 
     show(layout)
 

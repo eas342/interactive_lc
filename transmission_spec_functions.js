@@ -1,8 +1,5 @@
 const data = source.data;
-const thickness = t.value
 const w = data['w']
-const w_0 = 0.67
-const w_range = w[0] - w[w.length-1]
 const rad = data['rad']
 
 const data_lc = source_lc.data
@@ -11,12 +8,6 @@ const a_o_r = 6.0 // semi-major axis
 const b = 0.2 // impact parameter
 const period = 24. // orbital period
 const u_lin = 0.2 // linear limb darkening
-
-function radius_spec(w,thickness) {
-      r = 0.8 - 1.0 * thickness * (w - w_0) / w_range
-      
-      return r
-}
 
 function area_intersect(z_fun,r_fun) {
       if (z_fun >= 1.0 + r_fun) {
@@ -56,17 +47,16 @@ function lcFunction(t_fun, rad_fun) {
       return f * 100.0
 }
 
-
-
 for (var i = 0; i < w.length; i++) {
-      rad[i] = radius_spec(w[i],thickness);
+      rad[i] = r_slider_list[i].value
       
       //const f = data_lc['f ']
       const f = data_lc['f'+' '+String(i)]
       for (var j = 0; j < time.length; j++) {
-            f[j] = lcFunction(time[j], rad[i]);
+            f[j] = lcFunction(time[j], rad[i]) - 1.5 * i;
       }
 }
+
 
 source.change.emit();
 source_lc.change.emit();
