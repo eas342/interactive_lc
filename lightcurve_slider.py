@@ -3,6 +3,7 @@ import sys
 from bokeh.layouts import row, column
 from bokeh.models import CustomJS, Slider
 from bokeh.plotting import figure, output_file, show, ColumnDataSource
+from bokeh.palettes import Spectral
 #from bokeh.models import LinearColorMapper
 import pdb
 import warnings
@@ -288,33 +289,37 @@ def transmission_spec_slider(mysteryNum=1):
     rad_arr = np.ones_like(w) * rad_init
     orig_time = HDUList['TIME'].data
     
-    time = np.linspace(-1.2,1.2,256) ## time
+    time = np.linspace(-1.0,1.0,256) ## time
     
     nWave = len(w)
     
-    #colors_array = np.array(['darkred','red' ,'darkorange','orange','brown','yellow' ,'green',  'blue',  'violet'])
+    if nWave <= 11:
+        colors = Spectral[nWave]
+    else:
+        raise Exception("Need to figure out colors for {} wavelengths".format(nWave))
     
     
-    source = ColumnDataSource(data=dict(w=w, rad=rad_arr))
-    
-    plot1 = figure(y_range=(0.7,1.1), plot_width=400, plot_height=700)
-    
-    plot1.scatter('posx','posy',radius='rad',source=source, line_width=3,
-                  fill_color=None,line_color='colors')
-    plot1.circle(0.0,0.0,radius=0.8,color='black')
+    source = ColumnDataSource(data=dict(w=w, rad=rad_arr,colors=colors))
     
     lc_dict = {'t': time}
+    lc_data = {'t': orig_time}
     for waveInd in np.arange(nWave):
-        lc_dict['f {}'.format(waveInd)] = light_c(time,r=rad_arr[waveInd]/10.) - 1.5 * waveInd
+        offset = 1.5 * waveInd
+        lc = light_c(time,aOr=15.,b=0.785,r=rad_arr[waveInd]/10.,p=48.0,u=0.2)
+        lc_dict['f {}'.format(waveInd)] = lc - offset
+        lc_data['f {}'.format(waveInd)] = lcData[waveInd,:] * 100. - offset
     
     source_lc = ColumnDataSource(data=lc_dict)
+    source_data = ColumnDataSource(data=lc_data)
     
     plot1 = figure(y_range=[82,100.1],plot_width=400, plot_height=600)
     
     for waveInd in np.arange(nWave):
+        plot1.scatter('t','f {}'.format(waveInd),source=source_data,
+                      color=colors[waveInd],line_color='black')
         plot1.line('t','f {}'.format(waveInd),source=source_lc,
-                   line_width=3)
-#                   color=colors_array[waveInd],line_width=3)
+                   line_width=3,color=colors[waveInd])
+    
     plot1.xaxis.axis_label = "Time (hours)"
     plot1.yaxis.axis_label = "Relative Brightness (%) - Offset"
     plot1.xaxis.axis_label_text_font_size = axes_font_size
@@ -323,18 +328,19 @@ def transmission_spec_slider(mysteryNum=1):
     
     
     plot2 = figure(y_range=[1.0,2.0],plot_width=400, plot_height=300)
-    plot2.line('w','rad',source=source)
+    plot2.line('w','rad',source=source,color='black',line_width=3)
     plot2.xaxis.axis_label = "Wavelength (microns)"
     plot2.yaxis.axis_label = "Radius (Earth Radii)"
     plot2.xaxis.axis_label_text_font_size = axes_font_size
     plot2.yaxis.axis_label_text_font_size = axes_font_size
-    plot2.scatter('w','rad',source=source,line_width=None)#,fill_color='colors',size=12)
+    plot2.square('w','rad',source=source,line_width=None,fill_color='colors',size=16)
     plot2.title.text = 'Spectrum Plot'
     
     slider_list = []
     for waveInd in np.arange(nWave):
         thisTitle = "Radius (Earth Radii) at {:.2f} microns".format(w[waveInd])
-        r_slider = Slider(start=1.0, end=2.0, value=rad_init, step=0.01, title=thisTitle)
+        r_slider = Slider(start=1.0, end=2.0, value=rad_init, step=0.01, title=thisTitle,
+                          bar_color=colors[waveInd])
         slider_list.append(r_slider)
     
     with open ("transmission_spec_functions.js", "r") as js_file:

@@ -4,9 +4,13 @@ const rad = data['rad']
 
 const data_lc = source_lc.data
 const time = data_lc['t']
-const a_o_r = 6.0 // semi-major axis
-const b = 0.2 // impact parameter
-const period = 24. // orbital period
+// const a_o_r = 6.0 // semi-major axis
+// const b = 0.2 // impact parameter
+// const period = 24. // orbital period
+// const u_lin = 0.2 // linear limb darkening
+const a_o_r = 15 // semi-major axis
+const b = 0.785 // impact parameter
+const period = 48.0 // orbital period
 const u_lin = 0.2 // linear limb darkening
 
 function area_intersect(z_fun,r_fun) {
