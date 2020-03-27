@@ -15,7 +15,7 @@ except ImportError:
     warnings.warn("Could not find astropy. Data plotter may not work")
 
 if sys.version_info < (3,5):
-    warnings.warn("Use a Python 3.5 or later for better results")
+    warnings.warn("Use a Python 3.5 or later for best results")
 
 axes_font_size = "14pt"
 
@@ -186,7 +186,12 @@ def scattering_slider():
     posx = np.zeros_like(w)
     posy = np.zeros_like(w)
     wRange = w[0] - w[-1]
-    colors_array = np.array([  'red' ,'orange','yellow' ,'green',  'blue',  'violet'])
+    #colors_array = np.array([  'red' ,'orange','yellow' ,'green',  'blue',  'violet'])
+    if nWave <= 11:
+        colors_array = np.flip(Spectral[nWave])
+    else:
+        raise Exception("Too many wavelengths for palette")
+    
     thickness = 0.3 ## "atmospheric thickness"
     
     rad_arr = calc_radii(w,wRange,thickness)
