@@ -70,7 +70,7 @@ def area_intersect(z,r):
 
 def practice_slider():
     """ A simple practice slider for the webpage """
-    slider = Slider(start=0, end=10, value=0, step=0.1, title='Current Value')
+    slider = Slider(start=0, end=10, value=0, step=0.25, title='Current Value')
     source = ColumnDataSource(data=dict(x=[0.0],y=[0.0],txt=['Move Slider to 5.0']))
     
     callback = CustomJS(args=dict(source=source,s=slider),
@@ -230,7 +230,7 @@ def scattering_slider(savePlot=False):
     
     source = ColumnDataSource(data=dict(w=w, rad=rad_arr,posx=posx,posy=posy,colors=colors_array))
     
-    plot1 = figure(x_range=(-1.3,1.3),y_range=(-1.3,1.3), plot_width=400, plot_height=400)
+    plot1 = figure(x_range=(-1.3,1.3),y_range=(-1.3,1.3), plot_width=400, plot_height=400,tools="")
     
     plot1.scatter('posx','posy',radius='rad',source=source, line_width=3,
                   fill_color=None,line_color='colors')
@@ -242,7 +242,7 @@ def scattering_slider(savePlot=False):
     plot1.xaxis.axis_label_text_font_size = axes_font_size
     plot1.yaxis.axis_label_text_font_size = axes_font_size
 
-    plot2 = figure(y_range=[0.77,1.15],plot_width=400, plot_height=400)
+    plot2 = figure(y_range=[0.77,1.15],plot_width=400, plot_height=400,tools="")
     plot2.line('w','rad',source=source)
     plot2.xaxis.axis_label = "Wavelength (microns)"
     plot2.yaxis.axis_label = "Radius (Earth Radii)"
@@ -265,7 +265,7 @@ def scattering_slider(savePlot=False):
     
     source_lc = ColumnDataSource(data=lc_dict)
     
-    plot3 = figure(y_range=[98.5,100.1],plot_width=400, plot_height=400)
+    plot3 = figure(y_range=[98.5,100.1],plot_width=400, plot_height=400,tools="")
     
     for waveInd in np.arange(nWave):
         plot3.line('t','f {}'.format(waveInd),source=source_lc,
@@ -350,7 +350,7 @@ def transmission_spec_slider(mysteryNum=1,savePlot=False):
     source_lc = ColumnDataSource(data=lc_dict)
     source_data = ColumnDataSource(data=lc_data)
     
-    plot1 = figure(y_range=[82,100.1],plot_width=400, plot_height=600)
+    plot1 = figure(y_range=[82,100.1],plot_width=400, plot_height=600,tools='')
     
     for waveInd in np.arange(nWave):
         plot1.scatter('t','f {}'.format(waveInd),source=source_data,
@@ -365,7 +365,7 @@ def transmission_spec_slider(mysteryNum=1,savePlot=False):
     plot1.title.text = 'Lightcurve Plot'
     
     
-    plot2 = figure(y_range=[1.0,2.0],plot_width=400, plot_height=300)
+    plot2 = figure(y_range=[1.0,2.0],plot_width=400, plot_height=300,tools='')
     plot2.line('w','rad',source=source,color='black',line_width=3)
     plot2.xaxis.axis_label = "Wavelength (microns)"
     plot2.yaxis.axis_label = "Radius (Earth Radii)"
