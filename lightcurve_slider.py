@@ -3,6 +3,7 @@ import sys
 from bokeh.layouts import row, column
 from bokeh.models import CustomJS, Slider
 from bokeh.plotting import figure, output_file, show, ColumnDataSource
+from bokeh.io import output_notebook
 from bokeh.palettes import Spectral
 #from bokeh.models import LinearColorMapper
 import pdb
@@ -18,6 +19,8 @@ if sys.version_info < (3,5):
     warnings.warn("Use a Python 3.5 or later for best results")
 
 axes_font_size = "14pt"
+
+output_notebook()
 
 def limb_dark(z,r,u=0.2):
     """ Simple limb darkening law
@@ -64,12 +67,8 @@ def area_intersect(z,r):
         f[intersect_pt] = Aint / np.pi
     return f
 
-class fixed_param(dict):
-    def __init__(self,value):
-        self.value = value
 
-
-def lightcurve_slider(free_radius=True,free_impact=False):
+def lightcurve_slider(free_radius=True,free_impact=False,savePlot=False):
     """
     Lightcurve slider to show lightcurve and projected view
     """
@@ -149,8 +148,7 @@ def lightcurve_slider(free_radius=True,free_impact=False):
     callback = CustomJS(args=js_args,
                         code=js_code)
     #    
-
-    #if free_radius == True:
+    
     for oneSlider in sliderList:
         oneSlider.js_on_change('value', callback)
     
@@ -163,8 +161,9 @@ def lightcurve_slider(free_radius=True,free_impact=False):
         column(sliderList),
     )
     
-    outName = "plots/slider_free_rad_{}_free_b_{}.html".format(free_radius,free_impact)
-    output_file(outName, title="Radius Slider", mode='inline')
+    if savePlot == True:
+        outName = "plots/slider_free_rad_{}_free_b_{}.html".format(free_radius,free_impact)
+        output_file(outName, title="Radius Slider", mode='inline')
 
     show(layout)
 
@@ -177,7 +176,7 @@ def calc_radii(w,wRange,thickness=0.3):
     rad = 0.8 - 1.0 * thickness * (w - w0) / wRange
     return rad
 
-def scattering_slider():
+def scattering_slider(savePlot=False):
     """
     Slider shows the planet, spectrum and lightcurves
     """
@@ -264,8 +263,9 @@ def scattering_slider():
         column(plot1,plot2),
         column(t_slider,plot3),
     )
-
-    output_file("plots/slider_scattering.html", title="Radius Slider", mode='inline')
+    
+    if savePlot == True:
+        output_file("plots/slider_scattering.html", title="Radius Slider", mode='inline')
 
     show(layout)
 
@@ -277,7 +277,7 @@ def calc_radii(w,wRange,thickness=0.3):
     rad = 0.8 - 1.0 * thickness * (w - w0) / wRange
     return rad
 
-def transmission_spec_slider(mysteryNum=1):
+def transmission_spec_slider(mysteryNum=1,savePlot=False):
     """
     Sliders for the transmission spectrum and their lightcurves
     """
@@ -366,8 +366,9 @@ def transmission_spec_slider(mysteryNum=1):
         column(plot1,plot2),
         column(slider_list),
     )
-
-    output_file("plots/slider_transmission.html", title="Transmission Spectrum Slider", mode='inline')
+    
+    if savePlot == True:
+        output_file("plots/slider_transmission.html", title="Transmission Spectrum Slider", mode='inline')
 
     show(layout)
 
