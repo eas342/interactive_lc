@@ -1,7 +1,7 @@
 import numpy as np
 import sys
 from bokeh.layouts import row, column
-from bokeh.models import CustomJS, Slider
+from bokeh.models import CustomJS, Slider, Text
 from bokeh.plotting import figure, output_file, show, ColumnDataSource
 from bokeh.io import output_notebook
 from bokeh.palettes import Spectral
@@ -68,6 +68,39 @@ def area_intersect(z,r):
     return f
 
 
+def practice_slider():
+    """ A simple practice slider for the webpage """
+    slider = Slider(start=0, end=10, value=0, step=0.1, title='Current Value')
+    source = ColumnDataSource(data=dict(x=[0.0],y=[0.0],txt=['Move Slider to 5.0']))
+    
+    callback = CustomJS(args=dict(source=source,s=slider),
+                        code="""
+                        const data = source.data;
+                        const txt = data['txt']
+                        const s_val = s.value
+                        
+                        if (s_val == 5.0) {
+                            txt[0] = 'Good Job!'
+                        } else {
+                            txt[0] = 'Move Slider to 5.0'
+                        }
+                        source.change.emit();
+                        """)
+    plot1 = figure(plot_width=350,plot_height=80,x_range=[-1,5],y_range=[-1,2],tools="")
+    
+    txt = Text(x='x',y='y',text='txt')
+    plot1.add_glyph(source,txt)
+    
+    
+    slider.js_on_change('value', callback)
+    plot1.toolbar_location = None
+    plot1.axis.visible = False
+    plot1.xgrid.grid_line_color = None
+    plot1.ygrid.grid_line_color = None
+    
+    layout = column([plot1,slider])
+    show(layout)
+
 def lightcurve_slider(free_radius=True,free_impact=False,savePlot=False):
     """
     Lightcurve slider to show lightcurve and projected view
@@ -90,7 +123,7 @@ def lightcurve_slider(free_radius=True,free_impact=False,savePlot=False):
     planet_dict = dict(r=r,x=xCircle,y=yCircle,time_now=time_now,flux_now=flux_now,marker_size=marker_size)
     source_planet = ColumnDataSource(data=planet_dict)
 
-    plot1 = figure(y_range=(97.5, 100.2), plot_width=400, plot_height=200)
+    plot1 = figure(y_range=(97.5, 100.2), plot_width=400, plot_height=200,tools="")
 
     plot1.line('x', 'y', source=source, line_width=3, line_alpha=0.6)
     plot1.circle('time_now','flux_now',size='marker_size',source=source_planet,color='green')
@@ -101,7 +134,7 @@ def lightcurve_slider(free_radius=True,free_impact=False,savePlot=False):
     plot1.xaxis.axis_label_text_font_size = axes_font_size
     plot1.yaxis.axis_label_text_font_size = axes_font_size
 
-    plot2 = figure(x_range=(-20, 20),y_range=(-20, 20), plot_width=400, plot_height=400)
+    plot2 = figure(x_range=(-20, 20),y_range=(-20, 20), plot_width=400, plot_height=400,tools="")
 
     
     ## make a limb darkened star
