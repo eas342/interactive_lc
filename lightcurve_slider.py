@@ -12,6 +12,7 @@ from json import JSONEncoder
 import os
 try:
     from astropy.io import fits, ascii
+    from astropy.table import Table
 except ImportError:
     warnings.warn("Could not find astropy. Data plotter may not work")
 
@@ -404,6 +405,47 @@ def transmission_spec_slider(mysteryNum=1,savePlot=False):
         output_file("plots/slider_transmission.html", title="Transmission Spectrum Slider", mode='inline')
 
     show(layout)
+
+convertDict = {'H2O':'Water Vapor','CH4':'Methane','CO2':'Carbon Dioxide','Cloudy':'Cloudy'}
+
+def example_spectra(atmospheres=['H2O','CH4','CO2','No Atmosphere'],savePlot=False):
+    dat = Table.read('data/opacity_breakdown_gto_f_hd189733b.fits')
+    dat['No Atmosphere'] = 0.019
+    
+    plotList = []
+    for ind, atmosphere in enumerate(atmospheres):
+        if len(atmospheres) > 1:
+            plot_width=180
+            plot_height=180
+        else:
+            plot_width=500
+            plot_height=400
+        
+        plot1 = figure(plot_width=plot_width,plot_height=plot_height,tools='',
+                      x_range=[2.3,5.1])
+        rad = np.sqrt(dat[atmosphere]) * 10.
+        rad = (rad - np.mean(rad)) * 60. + np.mean(rad) ## exaggerate to see better
+        plot1.line(dat['Wave'],rad,line_width=4)
+        
+        if atmosphere in list(convertDict.keys()):
+            thisLabel = convertDict[atmosphere]
+        else:
+            thisLabel = atmosphere
+        
+        plot1.title.text = thisLabel
+        plot1.xaxis.axis_label = 'Wavelength (microns)'
+        plot1.yaxis.axis_label = 'Size (Earth Radii)'
+        plot1.toolbar_location = None
+        
+        plotList.append(plot1)
+    
+    layout = row(plotList)
+    
+    if savePlot == True:
+        output_file("plots/template_spectra.html",title="Template Spectra",mode="inline")
+    
+    show(layout)
+
 
 if __name__ == "__main__":
     lightcurve_slider()
