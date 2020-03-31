@@ -210,7 +210,7 @@ def calc_radii(w,wRange,thickness=0.3):
     rad = 0.8 - 1.0 * thickness * (w - w0) / wRange
     return rad
 
-def scattering_slider(savePlot=False):
+def scattering_slider(savePlot=False,plots=['planet','spectrum','lightcurve']):
     """
     Slider shows the planet, spectrum and lightcurves
     """
@@ -293,9 +293,18 @@ def scattering_slider(savePlot=False):
     plot2.toolbar_location = None
     plot3.toolbar_location = None
     
+    leftPlots = []
+    rightPlots = [t_slider]
+    if 'planet' in plots:
+        leftPlots.append(plot1)
+    if 'spectrum' in plots:
+        leftPlots.append(plot2)
+    if 'lightcurve' in plots:
+        rightPlots.append(plot3)
+    
     layout = row(
-        column(plot1,plot2),
-        column(t_slider,plot3),
+        column(leftPlots),
+        column(rightPlots),
     )
     
     if savePlot == True:
