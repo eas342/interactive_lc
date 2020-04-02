@@ -1,0 +1,1 @@
+<div class="bk-noUi-handle bk-noUi-handle-lower" data-handle="0" tabindex="0" role="slider" aria-orientation="horizontal" aria-valuemin="0.0" aria-valuemax="100.0" aria-valuenow="0.0" aria-valuetext="0.00" style="z-index: 4;"><div class="bk-noUi-tooltip">0</div></div>
