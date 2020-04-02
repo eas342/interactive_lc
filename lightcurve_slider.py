@@ -23,7 +23,7 @@ axes_font_size = "14pt"
 
 output_notebook()
 from IPython.core.display import display, HTML
-display(HTML("<style>.container { width:100% !important; }</style>"))
+display(HTML("<style>.container { width:100% !important; max-width:500 px}</style>"))
 
 def limb_dark(z,r,u=0.2):
     """ Simple limb darkening law
@@ -73,25 +73,29 @@ def area_intersect(z,r):
 
 def practice_slider():
     """ A simple practice slider for the webpage """
-    slider = Slider(start=0, end=10, value=0, step=0.25, title='Current Value')
-    source = ColumnDataSource(data=dict(x=[0.0],y=[0.0],txt=['Move Slider to 5.0']))
+    slider = Slider(start=0, end=10, value=0, step=0.25, title='Current Value',
+                    bar_color='black')
+    source = ColumnDataSource(data=dict(x=[0.0],y=[0.0],txt=['Move Slider to 5.0'],color=['blue']))
     
     callback = CustomJS(args=dict(source=source,s=slider),
                         code="""
                         const data = source.data;
                         const txt = data['txt']
+                        const col = data['color']
                         const s_val = s.value
                         
                         if (s_val == 5.0) {
                             txt[0] = 'Good Job!'
+                            col[0] = 'green'
                         } else {
                             txt[0] = 'Move Slider to 5.0'
+                            col[0] = 'blue'
                         }
                         source.change.emit();
                         """)
     plot1 = figure(plot_width=350,plot_height=80,x_range=[-1,5],y_range=[-1,2],tools="")
     
-    txt = Text(x='x',y='y',text='txt')
+    txt = Text(x='x',y='y',text='txt',text_color='color')
     plot1.add_glyph(source,txt)
     
     
@@ -167,9 +171,12 @@ def lightcurve_slider(free_radius=True,free_impact=False,savePlot=False):
     plot2.yaxis.axis_label_text_font_size = axes_font_size
     plot2.title.text = 'Star View'
 
-    t_slider = Slider(start=-1.5, end=1.5, value=0, step=0.01, title='Time from Central Transit (hours)')
-    r_slider = Slider(start=0.0, end=1.5, value=r[0], step=.01, title="Radius (Earth Radii)")
-    b_slider = Slider(start=0.0, end=1.1, value=0.2, step=0.01, title="Impact Parameter")
+    t_slider = Slider(start=-1.5, end=1.5, value=0, step=0.01, title='Time from Central Transit (hours)',
+                      bar_color='black')
+    r_slider = Slider(start=0.0, end=1.5, value=r[0], step=.01, title="Radius (Earth Radii)",
+                      bar_color='black')
+    b_slider = Slider(start=0.0, end=1.1, value=0.2, step=0.01, title="Impact Parameter",
+                      bar_color='black')
     
     sliderList = [t_slider]
     if free_radius == True:
