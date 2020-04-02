@@ -23,7 +23,7 @@ axes_font_size = "14pt"
 
 output_notebook()
 from IPython.core.display import display, HTML
-display(HTML("<style>.container { width:100% !important; max-width:500 px}</style>"))
+display(HTML("<style>.container { width:100% !important; }</style>"))
 
 def limb_dark(z,r,u=0.2):
     """ Simple limb darkening law
