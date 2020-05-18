@@ -428,7 +428,7 @@ convertDict = {'H2O':'Water Vapor','CH4':'Methane','CO2':'Carbon Dioxide','Cloud
 
 def example_spectra(atmospheres=['H2O','CH4','CO2','No Atmosphere'],savePlot=False):
     dat = Table.read('data/opacity_breakdown_gto_f_hd189733b.fits')
-    dat['No Atmosphere'] = 0.019
+    dat['No Atmosphere'] = 0.0179
     
     plotList = []
     for ind, atmosphere in enumerate(atmospheres):
@@ -440,7 +440,7 @@ def example_spectra(atmospheres=['H2O','CH4','CO2','No Atmosphere'],savePlot=Fal
             plot_height=400
         
         plot1 = figure(plot_width=plot_width,plot_height=plot_height,tools='',
-                      x_range=[2.3,5.1])
+                      x_range=[2.3,5.1],y_range=[1.3,2.0])
         rad = np.sqrt(dat[atmosphere]) * 10.
         rad = (rad - np.mean(rad)) * 60. + np.mean(rad) ## exaggerate to see better
         plot1.line(dat['Wave'],rad,line_width=4)
