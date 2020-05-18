@@ -12,6 +12,21 @@ const b = 0.2 // impact parameter
 const period = 24. // orbital period
 const u_lin = 0.2 // linear limb darkening
 
+var x_proj;
+var y_proj;
+var z;
+var r_p_rs;
+var f;
+var theta1;
+var theta2;
+var z_fun;
+var r_fun;
+var mu;
+var C;
+var x1;
+var Aint;
+var r;
+
 function radius_spec(w,thickness) {
       r = 0.8 - 1.0 * thickness * (w - w_0) / w_range
       

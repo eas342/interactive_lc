@@ -13,6 +13,20 @@ const b = 0.785 // impact parameter
 const period = 48.0 // orbital period
 const u_lin = 0.2 // linear limb darkening
 
+var x_proj;
+var y_proj;
+var z;
+var r_p_rs;
+var f;
+var theta1;
+var theta2;
+var z_fun;
+var r_fun;
+var mu;
+var C;
+var x1;
+var Aint;
+
 function area_intersect(z_fun,r_fun) {
       if (z_fun >= 1.0 + r_fun) {
             f = 0.0
